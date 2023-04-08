@@ -387,7 +387,7 @@ namespace WaypointCreatorGen2
             // Generates the SQL output.
             // waypoint_data
             SQLOutputTextBox.AppendText("SET @CGUID := xxxxxx;\r\n");
-            SQLOutputTextBox.AppendText("SET @PATH := (@CGUID+) * 10;\r\n");
+            SQLOutputTextBox.AppendText("SET @PATH := ((@CGUID+) * 10) << 3;\r\n");
             SQLOutputTextBox.AppendText("DELETE FROM `waypoint_data` WHERE `id`= @PATH;\r\n");
             SQLOutputTextBox.AppendText("INSERT INTO `waypoint_data` (`id`, `point`, `position_x`, `position_y`, `position_z`, `orientation`, `delay`) VALUES\r\n");
 
