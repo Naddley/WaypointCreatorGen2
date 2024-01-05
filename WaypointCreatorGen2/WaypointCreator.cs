@@ -392,8 +392,13 @@ namespace WaypointCreatorGen2
             SQLOutputTextBox.AppendText($"SET @ENTRY := {_selectedCreatureId};\r\n");
             SQLOutputTextBox.AppendText("SET @PATHOFFSET := 0;\r\n");
             SQLOutputTextBox.AppendText("SET @PATH := @ENTRY * 100 + @PATHOFFSET;\r\n");
-            SQLOutputTextBox.AppendText("DELETE FROM `waypoint_data` WHERE `id`= @PATH;\r\n");
-            SQLOutputTextBox.AppendText("INSERT INTO `waypoint_data` (`id`, `point`, `position_x`, `position_y`, `position_z`, `orientation`, `delay`) VALUES\r\n");
+            SQLOutputTextBox.AppendText("DELETE FROM `waypoint_path` WHERE `PathId`= @PATH;\r\n");
+            SQLOutputTextBox.AppendText("INSERT INTO `waypoint_path` (`PathId`, `MoveType`, `Flags`, `Comment`) VALUES\r\n");
+            SQLOutputTextBox.AppendText("(@PATH, 0, 0, '<fill comment here>');\r\n");
+            SQLOutputTextBox.AppendText("\r\n");
+
+            SQLOutputTextBox.AppendText("DELETE FROM `waypoint_path_node` WHERE `PathId`= @PATH;\r\n");
+            SQLOutputTextBox.AppendText("INSERT INTO `waypoint_path_node` (`PathId`, `NodeId`, `PositionX`, `PositionY`, `PositionZ`, `Orientation`, `Delay`) VALUES\r\n");
 
             int rowCount = 0;
             DataGridViewRow firstRow = null;
@@ -411,32 +416,13 @@ namespace WaypointCreatorGen2
 
             SQLOutputTextBox.AppendText("\r\n");
 
-            SQLOutputTextBox.AppendText("DELETE FROM `waypoint_data_addon` WHERE `PathID`= @PATH;\r\n");
-            SQLOutputTextBox.AppendText("INSERT INTO `waypoint_data_addon` (`PathID`, `PointID`, `SplinePointIndex`, `PositionX`, `PositionY`, `PositionZ`) VALUES\r\n");
-
-            int splineRowCount = 0;
-            DataGridViewRow splineFirstRow = null;
-            foreach (DataGridViewRow row in SplineGridView.Rows)
-            {
-                if (splineRowCount == 0)
-                    splineFirstRow = row;
-
-                ++splineRowCount;
-                if (splineRowCount < SplineGridView.Rows.Count)
-                    SQLOutputTextBox.AppendText($"(@PATH, {row.Cells[0].Value}, {row.Cells[1].Value}, {row.Cells[2].Value}, {row.Cells[3].Value}, {row.Cells[4].Value}),\r\n");
-                else
-                    SQLOutputTextBox.AppendText($"(@PATH, {row.Cells[0].Value}, {row.Cells[1].Value}, {row.Cells[2].Value}, {row.Cells[3].Value}, {row.Cells[4].Value});\r\n");
-            }
-
-            SQLOutputTextBox.AppendText("\r\n");
-
             // creature
             if (firstRow != null)
                 SQLOutputTextBox.AppendText($"UPDATE `creature` SET `position_x`= {firstRow.Cells[1].Value}, `position_y`= {firstRow.Cells[2].Value}, `position_z`= {firstRow.Cells[3].Value}, `orientation`= 0, `wander_distance`= 0, `MovementType`= 2 WHERE `guid`= @CGUID+;\r\n");
 
             // creature_addon
             SQLOutputTextBox.AppendText("DELETE FROM `creature_addon` WHERE `guid`= @CGUID+;\r\n");
-            SQLOutputTextBox.AppendText("INSERT INTO `creature_addon` (`guid`, `path_id`, `SheathState`) VALUES\r\n");
+            SQLOutputTextBox.AppendText("INSERT INTO `creature_addon` (`guid`, `PathId`, `SheathState`) VALUES\r\n");
             SQLOutputTextBox.AppendText("(@CGUID+, @PATH, 1);\r\n");
             SQLOutputTextBox.AppendText("\r\n");
             SQLOutputTextBox.AppendText("\r\n");
