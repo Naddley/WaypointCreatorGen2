@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -11,6 +13,7 @@ namespace WaypointCreatorGen2
     {
         // Dictionary<UInt32 /*CreatureID*/, Dictionary<UInt64 /*lowGUID*/, List<WaypointInfo>>>
         Dictionary<UInt32, Dictionary<UInt64, List<WaypointInfo>>> WaypointDatabyCreatureEntry = new Dictionary<UInt32, Dictionary<UInt64, List<WaypointInfo>>>();
+        Dictionary<UInt32, string> CreatureNamesByEntry = new Dictionary<uint, string>();
 
         DataGridViewRow[] CopiedDataGridRows;
         private uint _selectedCreatureId = 0;
@@ -57,6 +60,7 @@ namespace WaypointCreatorGen2
         // Parses all waypoint data from the provided file and returns a container filled with all needed data
         private Dictionary<UInt32, Dictionary<UInt64, List<WaypointInfo>>> GetWaypointDataFromSniff(String filePath)
         {
+            CreatureNamesByEntry.Clear();
             Dictionary<UInt32, Dictionary<UInt64, List<WaypointInfo>>> result = new Dictionary<UInt32, Dictionary<UInt64, List<WaypointInfo>>>();
 
             using (System.IO.StreamReader file = new System.IO.StreamReader(filePath))
@@ -69,6 +73,7 @@ namespace WaypointCreatorGen2
                         WaypointInfo wpInfo = new WaypointInfo();
                         UInt32 creatureId = 0;
                         UInt64 lowGuid = 0;
+                        string creatureName = "Unknow Creature";
 
                         // Extracting the packet timestamp in milliseconds from the packet header for delay calculations
                         string[] packetHeader = line.Split(new char[] { ' ' });
@@ -92,17 +97,34 @@ namespace WaypointCreatorGen2
                             if (line.Contains("MoverGUID:"))
                             {
                                 string[] words = line.Split(new char[] { ' ' });
+                                int j = 0;
+                                int k = 0;
                                 for (int i = 0; i < words.Length; ++i)
                                 {
                                     if (words[i].Contains("Entry:"))
+                                    {
                                         creatureId = UInt32.Parse(words[i + 1]);
+                                        j = i + 2;
+                                    }
                                     else if (words[i].Contains("Low:"))
+                                    {
+                                        k = i;
                                         lowGuid = UInt64.Parse(words[i + 1]);
+                                    }
                                 }
 
                                 // Skip invalid data.
                                 if (creatureId == 0 || lowGuid == 0)
                                     break;
+
+                                StringBuilder builder = new StringBuilder();
+                                for (; j < k; j++)
+                                {
+                                    builder.Append(words[j]  + ' ');
+                                }
+
+                                if (builder.Length > 0)
+                                    creatureName = builder.ToString().Replace("(", "").Replace(")", "");
                             }
 
                             // Extracting spline duration
@@ -154,7 +176,10 @@ namespace WaypointCreatorGen2
 
                                 // Everything gathered, time to store the data
                                 if (!result.ContainsKey(creatureId))
+                                {
+                                    CreatureNamesByEntry.Add(creatureId, creatureName);
                                     result.Add(creatureId, new Dictionary<UInt64, List<WaypointInfo>>());
+                                }
 
                                 if (!result[creatureId].ContainsKey(lowGuid))
                                     result[creatureId].Add(lowGuid, new List<WaypointInfo>());
@@ -194,14 +219,25 @@ namespace WaypointCreatorGen2
             if (creatureId == 0)
             {
                 foreach (var waypointsByEntry in WaypointDatabyCreatureEntry)
+                {
+                    string name;
+                    CreatureNamesByEntry.TryGetValue(waypointsByEntry.Key, out name);
                     foreach (var waypointsByGuid in waypointsByEntry.Value)
-                        EditorListBox.Items.Add(waypointsByEntry.Key.ToString() + " (" + waypointsByGuid.Key.ToString() + ")");
+                        EditorListBox.Items.Add($"{name} - " + waypointsByEntry.Key.ToString() + " (" + waypointsByGuid.Key.ToString() + ")");
+                }
+                    
             }
             else
             {
                 if (WaypointDatabyCreatureEntry.ContainsKey(creatureId))
+                {
+                    string name;
+                    CreatureNamesByEntry.TryGetValue(creatureId, out name);
+
                     foreach (var waypointsByGuid in WaypointDatabyCreatureEntry[creatureId])
-                        EditorListBox.Items.Add(creatureId.ToString() + " (" + waypointsByGuid.Key.ToString() + ")");
+                        EditorListBox.Items.Add($"{name} - " + creatureId.ToString() + " (" + waypointsByGuid.Key.ToString() + ")");
+                }
+                    
             }
         }
 
@@ -286,7 +322,18 @@ namespace WaypointCreatorGen2
             if (EditorListBox.SelectedIndex == -1)
                 return;
 
-            string[] words = EditorListBox.SelectedItem.ToString().Replace("(", "").Replace(")", "").Split(new char[] { ' ' });
+            string pattern = @"\b\d+\b.*\b\d+\b";
+            string input = EditorListBox.SelectedItem.ToString();
+            // Create a Regex object
+            Regex regex = new Regex(pattern);
+
+            // Find the match
+            Match match = regex.Match(input);
+
+            // Get the matched value
+            string result = match.Value;
+
+            string[] words = result.Replace("(", "").Replace(")", "").Split(new char[] { ' ' });
 
             UInt32 creatureId = UInt32.Parse(words[0]);
             UInt64 lowGuid = UInt64.Parse(words[1]);
@@ -389,6 +436,9 @@ namespace WaypointCreatorGen2
         {
             // Generates the SQL output.
             // waypoint_data
+            if (CreatureNamesByEntry.TryGetValue(_selectedCreatureId, out string name))
+                SQLOutputTextBox.AppendText($"-- Pathing for {name} with Entry: {_selectedCreatureId}\r\n");
+            
             SQLOutputTextBox.AppendText($"SET @ENTRY := {_selectedCreatureId};\r\n");
             SQLOutputTextBox.AppendText("SET @PATHOFFSET := 0;\r\n");
             SQLOutputTextBox.AppendText("SET @PATH := @ENTRY * 100 + @PATHOFFSET;\r\n");
