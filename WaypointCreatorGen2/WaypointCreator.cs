@@ -73,7 +73,7 @@ namespace WaypointCreatorGen2
                         WaypointInfo wpInfo = new WaypointInfo();
                         UInt32 creatureId = 0;
                         UInt64 lowGuid = 0;
-                        string creatureName = "Unknow Creature";
+                        string creatureName = "UnknowN";
 
                         // Extracting the packet timestamp in milliseconds from the packet header for delay calculations
                         string[] packetHeader = line.Split(new char[] { ' ' });
@@ -444,7 +444,7 @@ namespace WaypointCreatorGen2
             SQLOutputTextBox.AppendText("SET @PATH := @ENTRY * 100 + @PATHOFFSET;\r\n");
             SQLOutputTextBox.AppendText("DELETE FROM `waypoint_path` WHERE `PathId`= @PATH;\r\n");
             SQLOutputTextBox.AppendText("INSERT INTO `waypoint_path` (`PathId`, `MoveType`, `Flags`, `Comment`) VALUES\r\n");
-            SQLOutputTextBox.AppendText("(@PATH, 0, 0, '<fill comment here>');\r\n");
+            SQLOutputTextBox.AppendText("(@PATH, 0, 0, " + $"'{name}');\r\n");
             SQLOutputTextBox.AppendText("\r\n");
 
             SQLOutputTextBox.AppendText("DELETE FROM `waypoint_path_node` WHERE `PathId`= @PATH;\r\n");
