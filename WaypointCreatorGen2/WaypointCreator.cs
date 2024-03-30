@@ -420,8 +420,6 @@ namespace WaypointCreatorGen2
         {
             // Generates the SQL output.
             // waypoint_data
-            if (CreatureNamesByEntry.TryGetValue(_selectedCreatureId, out string name))
-                SQLOutputTextBox.AppendText($"-- Pathing for {name} with Entry: {_selectedCreatureId}\r\n");
 
             SQLOutputTextBox.AppendText($"SET @ENTRY := {_selectedCreatureId};\r\n");
             SQLOutputTextBox.AppendText("SET @PATHOFFSET := 0;\r\n");
