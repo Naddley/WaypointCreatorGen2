@@ -210,8 +210,7 @@ namespace WaypointCreatorGen2
             {
                 foreach (var waypointsByEntry in WaypointDatabyCreatureEntry)
                 {
-                    string name = "Unknown";
-                    CreatureNamesByEntry.TryGetValue(waypointsByEntry.Key, out name);
+                    CreatureNamesByEntry.TryGetValue(waypointsByEntry.Key, out var name);
                     foreach (var waypointsByGuid in waypointsByEntry.Value)
                         EditorListBox.Items.Add($"{waypointsByEntry.Key} - {name} ({waypointsByGuid.Key})");
                 }
@@ -221,9 +220,7 @@ namespace WaypointCreatorGen2
             {
                 if (WaypointDatabyCreatureEntry.ContainsKey(creatureId))
                 {
-                    string name = "Unknown";
-                    CreatureNamesByEntry.TryGetValue(creatureId, out name);
-
+                    CreatureNamesByEntry.TryGetValue(creatureId, out var name);
                     foreach (var waypointsByGuid in WaypointDatabyCreatureEntry[creatureId])
                         EditorListBox.Items.Add($"{creatureId} - {name} ({waypointsByGuid.Key.ToString()})");
                 }
@@ -420,6 +417,7 @@ namespace WaypointCreatorGen2
         {
             // Generates the SQL output.
             // waypoint_data
+            CreatureNamesByEntry.TryGetValue(_selectedCreatureId, out string name);
 
             SQLOutputTextBox.AppendText($"SET @ENTRY := {_selectedCreatureId};\r\n");
             SQLOutputTextBox.AppendText("SET @PATHOFFSET := 0;\r\n");
