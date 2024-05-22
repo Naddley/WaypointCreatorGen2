@@ -423,13 +423,14 @@ namespace WaypointCreatorGen2
             // Generates the SQL output.
             // waypoint_data
             CreatureNamesByEntry.TryGetValue(_selectedCreatureId, out string name);
+            var velocity = "NULL";
 
             SQLOutputTextBox.AppendText($"SET @ENTRY := {_selectedCreatureId};\r\n");
             SQLOutputTextBox.AppendText("SET @PATHOFFSET := 0;\r\n");
             SQLOutputTextBox.AppendText("SET @PATH := @ENTRY * 100 + @PATHOFFSET;\r\n");
             SQLOutputTextBox.AppendText("DELETE FROM `waypoint_path` WHERE `PathId`= @PATH;\r\n");
-            SQLOutputTextBox.AppendText("INSERT INTO `waypoint_path` (`PathId`, `MoveType`, `Flags`, `Comment`) VALUES\r\n");
-            SQLOutputTextBox.AppendText($"(@PATH, 0, 0, '{name} - Idle');\r\n");
+            SQLOutputTextBox.AppendText("INSERT INTO `waypoint_path` (`PathId`, `MoveType`, `Flags`, `Velocity`, `Comment`) VALUES\r\n");
+            SQLOutputTextBox.AppendText($"(@PATH, 0, 0, {velocity}, '{name} - Idle');\r\n");
             SQLOutputTextBox.AppendText("\r\n");
 
             SQLOutputTextBox.AppendText("DELETE FROM `waypoint_path_node` WHERE `PathId`= @PATH;\r\n");
