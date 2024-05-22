@@ -424,6 +424,7 @@ namespace WaypointCreatorGen2
             // waypoint_data
             CreatureNamesByEntry.TryGetValue(_selectedCreatureId, out string name);
 
+            SQLOutputTextBox.AppendText("SET @MOVERGUID := @CGUID+xxxxxxxx;\r\n");
             SQLOutputTextBox.AppendText($"SET @ENTRY := {_selectedCreatureId};\r\n");
             SQLOutputTextBox.AppendText("SET @PATHOFFSET := 0;\r\n");
             SQLOutputTextBox.AppendText("SET @PATH := @ENTRY * 100 + @PATHOFFSET;\r\n");
@@ -453,12 +454,12 @@ namespace WaypointCreatorGen2
 
             // creature
             if (firstRow != null)
-                SQLOutputTextBox.AppendText($"UPDATE `creature` SET `position_x`= {firstRow.Cells[1].Value}, `position_y`= {firstRow.Cells[2].Value}, `position_z`= {firstRow.Cells[3].Value}, `orientation`= 0, `wander_distance`= 0, `MovementType`= 2 WHERE `guid`= @CGUID+;\r\n");
+                SQLOutputTextBox.AppendText($"UPDATE `creature` SET `position_x`={firstRow.Cells[1].Value}, `position_y`={firstRow.Cells[2].Value}, `position_z`={firstRow.Cells[3].Value}, `orientation`=0, `wander_distance`=0, `MovementType`=2 WHERE `guid`=@MOVERGUID;\r\n");
 
             // creature_addon
-            SQLOutputTextBox.AppendText("DELETE FROM `creature_addon` WHERE `guid`= @CGUID+;\r\n");
+            SQLOutputTextBox.AppendText("DELETE FROM `creature_addon` WHERE `guid`=@MOVERGUID;\r\n");
             SQLOutputTextBox.AppendText("INSERT INTO `creature_addon` (`guid`, `PathId`, `SheathState`) VALUES\r\n");
-            SQLOutputTextBox.AppendText("(@CGUID+, @PATH, 1);\r\n");
+            SQLOutputTextBox.AppendText("(@MOVERGUID, @PATH, 1);\r\n");
             SQLOutputTextBox.AppendText("\r\n");
             SQLOutputTextBox.AppendText("\r\n");
 
