@@ -7,6 +7,7 @@ using System.Text.RegularExpressions;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using MySql.Data.MySqlClient;
 
 namespace WaypointCreatorGen2
 {
@@ -21,6 +22,17 @@ namespace WaypointCreatorGen2
         private uint _selectedCreatureId = 0;
 
         private const int SEQUENCE_TO_CHECK_FOR_DUPLICATES = 3;
+
+        private string GetConnectionString()
+        {
+            var host = Properties.Settings.Default.host;
+            var database = Properties.Settings.Default.database;
+            var username = Properties.Settings.Default.username;
+            var password = Properties.Settings.Default.password;
+            var port = Properties.Settings.Default.port;
+
+            return $"server={host};user={username};database={database};port={port};password={password};";
+        }
 
         public WaypointCreator()
         {
@@ -213,22 +225,45 @@ namespace WaypointCreatorGen2
             {
                 foreach (var waypointsByEntry in WaypointDatabyCreatureEntry)
                 {
-                    CreatureNamesByEntry.TryGetValue(waypointsByEntry.Key, out var name);
+                    var name = GetCreatureName(waypointsByEntry.Key);
                     foreach (var waypointsByGuid in waypointsByEntry.Value)
                         EditorListBox.Items.Add($"{waypointsByEntry.Key} - {name} ({waypointsByGuid.Key})");
                 }
-
             }
             else
             {
                 if (WaypointDatabyCreatureEntry.ContainsKey(creatureId))
                 {
-                    CreatureNamesByEntry.TryGetValue(creatureId, out var name);
+                    var name = GetCreatureName(creatureId);
                     foreach (var waypointsByGuid in WaypointDatabyCreatureEntry[creatureId])
                         EditorListBox.Items.Add($"{creatureId} - {name} ({waypointsByGuid.Key.ToString()})");
                 }
-
             }
+        }
+
+        private string GetCreatureName(UInt32 entry)
+        {
+            string name = string.Empty;
+            string query = "SELECT `name` FROM `creature_template` WHERE `entry` = @entry";
+
+            using (MySqlConnection conn = new MySqlConnection(GetConnectionString()))
+            {
+                conn.Open();
+                using (MySqlCommand cmd = new MySqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@entry", entry);
+
+                    using (MySqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        if (reader.Read())
+                        {
+                            name = reader["name"].ToString();
+                        }
+                    }
+                }
+            }
+
+            return name;
         }
 
         private void ShowWaypointDataForCreature(UInt32 creatureId, UInt64 lowGUID)
