@@ -457,7 +457,7 @@ namespace WaypointCreatorGen2
         {
             // Generates the SQL output.
             // waypoint_data
-            CreatureNamesByEntry.TryGetValue(_selectedCreatureId, out string name);
+            string name = GetCreatureName(_selectedCreatureId);
             var velocity = "NULL";
 
             SQLOutputTextBox.AppendText("SET @MOVERGUID := @CGUID+xxxxxxxx;\r\n");
