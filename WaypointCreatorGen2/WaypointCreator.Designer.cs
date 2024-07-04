@@ -363,6 +363,7 @@ namespace WaypointCreatorGen2
             // EditorListBox
             // 
             this.EditorListBox.FormattingEnabled = true;
+            this.EditorListBox.HorizontalScrollbar = true;
             this.EditorListBox.Location = new System.Drawing.Point(7, 14);
             this.EditorListBox.Name = "EditorListBox";
             this.EditorListBox.Size = new System.Drawing.Size(194, 472);
