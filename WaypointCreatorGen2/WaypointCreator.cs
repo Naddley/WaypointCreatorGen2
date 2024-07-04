@@ -7,7 +7,7 @@ using System.Text.RegularExpressions;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using MySql.Data.MySqlClient;
+using MySqlConnector;
 
 namespace WaypointCreatorGen2
 {
@@ -26,10 +26,10 @@ namespace WaypointCreatorGen2
         private string GetConnectionString()
         {
             var host = Properties.Settings.Default.host;
+            var port = Properties.Settings.Default.port;
             var database = Properties.Settings.Default.database;
             var username = Properties.Settings.Default.username;
             var password = Properties.Settings.Default.password;
-            var port = Properties.Settings.Default.port;
 
             return $"server={host};user={username};database={database};port={port};password={password};";
         }
