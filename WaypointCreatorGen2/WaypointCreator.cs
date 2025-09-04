@@ -164,7 +164,7 @@ namespace WaypointCreatorGen2
                             {
                                 string[] words = line.Split(new char[] { ' ' });
                                 for (int i = 0; i < words.Length; ++i)
-                                    if (words[i].Contains("FaceDirection:"))
+                                    if (words[i].StartsWith("FaceDirection:"))
                                         wpInfo.Position.Orientation = float.Parse(words[i + 1], CultureInfo.InvariantCulture);
                             }
 
